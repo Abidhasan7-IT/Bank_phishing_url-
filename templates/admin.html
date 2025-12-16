@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin - Phishing Guard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+      body {
+        background-color: #f8f9fa;
+      }
+      .hero-band {
+        background: linear-gradient(120deg, rgba(25, 135, 84, 0.15), rgba(13, 110, 253, 0.1));
+        border-radius: 1rem;
+        padding: 1rem;
+        margin-bottom: 0.8rem;
+      }
+      .stat-card {
+        border-radius: 1rem;
+      }
+    </style>
+  </head>
+  <body class="bg-light">
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+      <div class="container-fluid px-4">
+        <a class="navbar-brand fw-semibold" href="{{ url_for('index') }}"><img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" height="55"> Phishing Guard</a>
+        <div class="d-flex align-items-center gap-3 ms-auto">
+          {% if session.admin_email %}
+            <div class="text-dark-50 small text-end">
+              <div class="text-uppercase text-dark-50">Signed in</div>
+              <div class="fw-semibold text-primary">{{ session.admin_email }}</div>
+            </div>
+            <a class="btn btn-sm btn-outline-danger px-3" href="{{ url_for('admin_logout') }}">Logout</a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <div class="container-xxl py-3 px-3 px-md-4">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              {{ message }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      {% if not data %}
+        <div class="row justify-content-center">
+          <div class="col-md-7 col-lg-5">
+            <div class="card shadow-sm p-4 p-md-5 bg-white">
+              <div class="text-center mb-4">
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Admin Access</span>
+                <h2 class="fw-semibold mt-3 mb-2 text-dark">Secure Console</h2>
+                <p class="text-muted mb-0">Authenticate with your admin credentials to manage bank domains and phishing intelligence.</p>
+              </div>
+              {% if login_error %}
+                <div class="alert alert-danger">{{ login_error }}</div>
+              {% endif %}
+              <form method="POST" action="{{ url_for('admin') }}" class="needs-validation" novalidate>
+                <div class="mb-3">
+                  <label for="email" class="form-label text-uppercase small text-muted">Email</label>
+                  <input type="email" class="form-control form-control-lg" id="email" name="email" placeholder="admin@domain.com" required>
+                </div>
+                <div class="mb-4">
+                  <label for="password" class="form-label text-uppercase small text-muted">Password</label>
+                  <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn btn-success btn-lg w-100 py-3">Enter Dashboard</button>
+              </form>
+            </div>
+          </div>
+        </div>
+      {% else %}
+        <div class="hero-band">
+          <div class="d-flex flex-column flex-lg-row justify-content-between gap-2 align-items-lg-center">
+            <div>
+              <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 text-uppercase mb-3">Threat Intelligence</span>
+              <h1 class="mb-1">Admin Monitoring Center</h1>
+              <p class="text-muted mb-0">Monitor suspicious URLs, curate trusted bank domains, and stay ahead of phishing attempts with real-time visibility.</p>
+            </div>
+          
+          </div>
+        </div>
+
+        <div class="row g-4 mb-2">
+          <div class="col-md-4">
+            <div class="stat-card card shadow-sm h-100">
+              <div class="card-body">
+                <h6 class="text-uppercase text-muted small mb-1">Whitelisted Banks</h6>
+                <div class="fs-3 fw-semibold">{{ data.bank_whitelist|length }}</div>
+                <p class="text-muted small mb-0">Domains trusted and curated by the security team.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card card shadow-sm h-100">
+              <div class="card-body">
+                <h6 class="text-uppercase text-muted small mb-1">Phishing Signals</h6>
+                <div class="fs-3 fw-semibold">{{ data.phishing_urls|length }}</div>
+                <p class="text-muted small mb-0">Latest endpoints confirmed as malicious.</p>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="stat-card card shadow-sm h-100">
+              <div class="card-body">
+                <h6 class="text-uppercase text-muted small mb-1">Detections Today</h6>
+                <div class="fs-3 fw-semibold">{{ data.checked_urls|length }}</div>
+                <p class="text-muted small mb-0">Automated scans captured during this session.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          <div class="col-xl-4">
+            <div class="card shadow-sm p-4 mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Add Whitelist Entry</h5>
+                <span class="badge bg-success bg-opacity-25 text-success">Secure</span>
+              </div>
+              <form method="POST" action="{{ url_for('add_bank_whitelist') }}">
+                <div class="mb-3">
+                  <label class="form-label text-uppercase small text-muted">Bank Name</label>
+                  <input type="text" class="form-control" name="bank_name" placeholder="Example Bank" required>
+                </div>
+                <div class="mb-4">
+                  <label class="form-label text-uppercase small text-muted">Domain</label>
+                  <input type="text" class="form-control" name="domain" placeholder="examplebank.com" required>
+                </div>
+                <button type="submit" class="btn btn-success w-100 py-2">Add to Trusted List</button>
+              </form>
+            </div>
+
+            <div class="card shadow-sm p-4 mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Whitelisted Banks</h5>
+                <span class="badge bg-info text-dark">{{ data.bank_whitelist|length }}</span>
+              </div>
+              <div class="table-responsive" style="max-height: 320px; overflow-y: auto;">
+                <table class="table table-sm align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>Bank</th>
+                      <th>Domain</th>
+                      <th>Added</th>
+                      <th class="text-center">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for item in data.bank_whitelist %}
+                      <tr>
+                        <td class="fw-semibold">{{ item.bank_name }}</td>
+                        <td><code>{{ item.domain }}</code></td>
+                        <td class="text-muted">{{ item.added_at }}</td>
+                        <td class="text-center">
+                          <form method="POST" action="{{ url_for('delete_bank_whitelist', entry_id=item.id) }}" onsubmit="return confirm('Remove this whitelisted bank?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                          </form>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xl-8">
+            <div class="card shadow-sm p-4 mb-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Latest Phishing URLs</h5>
+                <span class="badge bg-danger bg-opacity-25 text-danger">Watchlist</span>
+              </div>
+              <div class="table-responsive" style="max-height: 270px; overflow-y: auto;">
+                <table class="table table-sm align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>URL</th>
+                      <th>Source</th>
+                      <th>Added</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for row in data.phishing_urls %}
+                      <tr>
+                        <td class="fw-semibold">{{ row.id }}</td>
+                        <td class="text-break">{{ row.url }}</td>
+                        <td><span class="badge bg-light text-muted border px-2">{{ row.source }}</span></td>
+                        <td class="text-muted">{{ row.added_at }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="card shadow-sm p-4">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="mb-0">Recent URL Checks</h5>
+                <span class="badge bg-primary bg-opacity-25 text-primary">Live feed</span>
+              </div>
+              <div class="table-responsive" style="max-height: 320px;">
+                <table class="table table-sm align-middle mb-0">
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>URL</th>
+                      <th>HTTPS</th>
+                      <th>Domain Age</th>
+                      <th>External</th>
+                      <th>Score</th>
+                      <th>Status</th>
+                      <th>Checked</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for row in data.checked_urls %}
+                      <tr>
+                        <td>{{ row.id }}</td>
+                        <td class="text-break">{{ row.url }}</td>
+                        <td>
+                          <span class="badge {{ 'bg-success' if row.https_status else 'bg-danger' }}">
+                            {{ 'Yes' if row.https_status else 'No' }}
+                          </span>
+                        </td>
+                        <td>{{ row.domain_age if row.domain_age is not none else 'Unknown' }}</td>
+                        <td>{{ row.external_api_result }}</td>
+                        <td>
+                          <span class="badge {{ 'bg-danger' if row.risk_score >= 70 else 'bg-warning' if row.risk_score >= 40 else 'bg-success' }}">
+                            {{ row.risk_score }}
+                          </span>
+                        </td>
+                        <td>
+                          <span class="badge {{ 'bg-danger' if row.final_status == 'phishing' else 'bg-success' }}">{{ row.final_status }}</span>
+                        </td>
+                        <td class="text-muted">{{ row.checked_at }}</td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
+

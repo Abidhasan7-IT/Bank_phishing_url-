@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Secure Banking - Phishing Detector</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  </head>
+  <body class="bg-gradient">
+    
+    <nav class="navbar navbar-expand-lg shadow-sm glassy-nav mt-0">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('index') }}">
+          <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" height="60" class="p-1">
+          <div>
+            <div class="fw-semibold text-dark mb-0">Secure Banking</div>
+            <small class="text-muted"> phishing defense</small>
+          </div>
+        </a>
+        <div class="d-none d-lg-flex align-items-center gap-3">
+          <span class="badge bg-light text-dark px-3"><i class="bi bi-shield-lock me-1"></i>HTTPS scan</span>
+          <span class="badge bg-light text-dark px-3"><i class="bi bi-activity me-1"></i>Threat intel</span>
+          <span class="badge bg-light text-dark px-3"><i class="bi bi-graph-up-arrow me-1"></i>Risk scoring</span>
+        </div>
+      </div>
+    </nav>
+    
+    <div class="background-blob blob-1"></div>
+    <div class="background-blob blob-2"></div>
+
+    <header class="py-5">
+      <div class="container">
+        <div class="row g-4 align-items-center">
+          <div class="col-lg-6">
+            <div class="pill mb-3">
+              <i class="bi bi-lightning-charge-fill text-warning me-2"></i>
+              Instant phishing verdicts for banking links
+            </div>
+            <h1 class="display-5 fw-bold text-dark mb-3">Scan any banking URL before you click.</h1>
+            <p class="lead text-secondary mb-4">
+              Detect suspicious login pages, expired domains, and malicious redirects with one quick check. Stay ahead of phishing campaigns that target your accounts.
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+              <span class="badge feature-badge"><i class="bi bi-lock-fill me-1"></i>HTTPS reachability</span>
+              <span class="badge feature-badge"><i class="bi bi-calendar-event me-1"></i>Domain age</span>
+              <span class="badge feature-badge"><i class="bi bi-cloud-check me-1"></i>External intelligence</span>
+              <span class="badge feature-badge"><i class="bi bi-speedometer2 me-1"></i>Risk score</span>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card shadow-lg border-0 glassy-card">
+              <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-3">
+                  <div class="icon-circle me-3">
+                    <i class="bi bi-search-heart-fill"></i>
+                  </div>
+                  <div>
+                    <h5 class="card-title mb-0">Phishing URL Risk Assessment</h5>
+                    <small class="text-muted">Securely analyze without visiting the page</small>
+                  </div>
+                </div>
+                <form method="POST" action="{{ url_for('index') }}">
+                  <label class="form-label text-muted small fw-semibold" for="urlInput">Banking URL</label>
+                  <div class="input-group input-group-lg mb-3">
+                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-link-45deg"></i></span>
+                    <input id="urlInput" type="text" class="form-control form-control-lg border-start-0 shadow-none" name="url" placeholder="https://bank.example.com/login" required>
+                  </div>
+                  <button class="btn btn-success w-100 btn-lg" type="submit">
+                    <i class="bi bi-shield-check me-2"></i>Run Security Check
+                  </button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="pb-5">
+      <div class="container">
+        {% if result %}
+        <div class="row justify-content-center">
+          <div class="col-lg-8">
+            {% if result.error %}
+              <div class="alert alert-danger shadow-sm border-0">{{ result.error }}</div>
+            {% else %}
+              <div class="card shadow-lg border-0 glassy-card">
+                <div class="card-body p-4">
+                  <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-2">
+                    <div>
+                      <p class="text-muted small mb-1">Security verdict</p>
+                      <h5 class="card-title mb-0">Scan Result</h5>
+                    </div>
+                    <span class="verdict-pill {% if result.final_status == 'phishing' %}bg-danger-soft text-danger{% else %}bg-success-soft text-success{% endif %}">
+                      <i class="bi {% if result.final_status == 'phishing' %}bi-exclamation-triangle-fill{% else %}bi-shield-check{% endif %} me-2"></i>
+                      {% if result.final_status == 'phishing' %}High Risk (Phishing){% else %}Low Risk (Safe){% endif %}
+                    </span>
+                  </div>
+                  <p class="mt-2 fw-semibold text-dark">URL: <span class="text-decoration-underline">{{ result.url }}</span></p>
+                  {% if result.reason %}
+                    <p class="text-danger fw-semibold"><i class="bi bi-bug-fill me-1"></i>Reason: {{ result.reason }}</p>
+                  {% endif %}
+                  <div class="row g-3 mt-3">
+                    <div class="col-md-6">
+                      <div class="status-tile d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="icon-badge bg-success-soft text-success"><i class="bi bi-lock-fill"></i></div>
+                          <span class="fw-semibold">HTTPS reachable</span>
+                        </div>
+                        <span class="badge bg-{% if result.https_status %}success{% else %}warning{% endif %}">
+                          {{ 'Yes' if result.https_status else 'No' }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="status-tile d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="icon-badge bg-primary-soft text-primary"><i class="bi bi-calendar-week-fill"></i></div>
+                          <span class="fw-semibold">Domain age (days)</span>
+                        </div>
+                        <span class="badge bg-secondary">
+                          {{ result.domain_age if result.domain_age is not none else 'Unknown' }}
+                        </span>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="status-tile d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="icon-badge bg-info-soft text-info"><i class="bi bi-cloud-check-fill"></i></div>
+                          <span class="fw-semibold">External API</span>
+                        </div>
+                        <span class="badge bg-info text-dark">{{ result.external_api_result }}</span>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="status-tile d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                          <div class="icon-badge bg-dark-soft text-dark"><i class="bi bi-speedometer2"></i></div>
+                          <span class="fw-semibold">Risk score</span>
+                        </div>
+                        <span class="badge bg-dark">{{ result.risk_score }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+        
+        {% endif %}
+      </div>
+    </main>
+
+    <footer class="py-4 text-center text-muted small">
+      <div class="container">
+        <p class="mb-1"><i class="bi bi-shield-lock-fill me-1"></i>Built to protect your banking sessions from phishing attacks.</p>
+        <div class="d-flex justify-content-center gap-3">
+          <span><i class="bi bi-check-circle-fill text-success me-1"></i>MUHAMMAD SYAZWAN BIN SHUKRIE </span>
+          <span><i class="bi bi-lightning-charge-fill text-warning me-1"></i>ID. NUMBER : 52215122505</span>
+        </div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>
+
