@@ -1,6 +1,9 @@
 # setup this project run fast - 
 - pip install -r requirements.txt
 
+# import sql file phishing_guard.sql into xampp 
+- phishing_guard.sql or write sql follow: schema.sql
+
 # Run cmd -
  - python app.py or py app.py
  

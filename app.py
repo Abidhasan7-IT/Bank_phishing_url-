@@ -155,7 +155,9 @@ def external_api_check(url: str) -> str:
             return "suspicious"
     
     # Check for suspicious subdomain patterns
-    if netloc.count(".") > 2:  # Multiple subdomains
+    # Treat only very deep subdomain chains as suspicious. Common banking domains
+    # like 'www.bank.com.my' have several dots but are usually legitimate.
+    if netloc.count(".") > 3:  # Excessive subdomains
         logger.info("Multiple subdomains detected")
         return "suspicious"
     
@@ -428,6 +430,17 @@ def index():
             result={"error": "Please provide a valid URL."},
         )
 
+    # Basic validation: require a full domain, not just 'https://www'
+    parsed = urlparse(normalized_url)
+    host = parsed.netloc.split(":")[0].lower()
+    if not host or host == "www" or "." not in host:
+        return render_template(
+            "index.html",
+            result={
+                "error": "Please enter a full banking domain (for example: https://www.bank.com or https://www.muamalat.com.my), not just https://www.",
+            },
+        )
+
     conn = get_db_connection()
     try:
         # Step 1: Check against phishing DB
@@ -476,13 +489,18 @@ def index():
         risk_score = calculate_risk_score(https_ok, domain_age, external_result, normalized_url, conn)
         
         logger.info("Calculated Risk Score: %d", risk_score)
-        logger.info("Risk Threshold (high): %d", config.RISK_THRESHOLD["high"])
-        
-        final_status = (
-            "phishing"
-            if risk_score >= config.RISK_THRESHOLD["high"]
-            else "safe"
-        )
+        logger.info("Risk Thresholds (high/medium): %d / %d", config.RISK_THRESHOLD["high"], config.RISK_THRESHOLD["medium"])
+
+        # Map numeric score to human-readable risk level and final status
+        if risk_score >= config.RISK_THRESHOLD["high"]:
+            risk_level = "high"
+            final_status = "phishing"
+        elif risk_score >= config.RISK_THRESHOLD["medium"]:
+            risk_level = "medium"
+            final_status = "suspicious"
+        else:
+            risk_level = "low"
+            final_status = "safe"
         
         # Log the risk assessment for debugging
         logger.info(
@@ -497,6 +515,7 @@ def index():
             "external_api_result": external_result,
             "risk_score": risk_score,
             "final_status": final_status,
+            "risk_level": risk_level,
         }
 
         # If phishing detected, add to phishing database and fetch latest phishing URLs

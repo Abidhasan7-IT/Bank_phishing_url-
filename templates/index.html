@@ -93,9 +93,17 @@
                       <p class="text-muted small mb-1">Security verdict</p>
                       <h5 class="card-title mb-0">Scan Result</h5>
                     </div>
-                    <span class="verdict-pill {% if result.final_status == 'phishing' %}bg-danger-soft text-danger{% else %}bg-success-soft text-success{% endif %}">
-                      <i class="bi {% if result.final_status == 'phishing' %}bi-exclamation-triangle-fill{% else %}bi-shield-check{% endif %} me-2"></i>
-                      {% if result.final_status == 'phishing' %}High Risk (Phishing){% else %}Low Risk (Safe){% endif %}
+                    <span class="verdict-pill 
+                      {% if result.risk_level == 'high' %}bg-danger-soft text-danger
+                      {% elif result.risk_level == 'medium' %}bg-warning-soft text-warning
+                      {% else %}bg-success-soft text-success{% endif %}">
+                      <i class="bi 
+                        {% if result.risk_level == 'high' %}bi-exclamation-triangle-fill
+                        {% elif result.risk_level == 'medium' %}bi-exclamation-circle-fill
+                        {% else %}bi-shield-check{% endif %} me-2"></i>
+                      {% if result.risk_level == 'high' %}High Risk (Phishing)
+                      {% elif result.risk_level == 'medium' %}Medium Risk (Suspicious)
+                      {% else %}Low Risk (Safe){% endif %}
                     </span>
                   </div>
                   <p class="mt-2 fw-semibold text-dark">URL: <span class="text-decoration-underline">{{ result.url }}</span></p>
@@ -118,10 +126,14 @@
                       <div class="status-tile d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center gap-2">
                           <div class="icon-badge bg-primary-soft text-primary"><i class="bi bi-calendar-week-fill"></i></div>
-                          <span class="fw-semibold">Domain age (days)</span>
+                          <span class="fw-semibold">Domain age (years)</span>
                         </div>
                         <span class="badge bg-secondary">
-                          {{ result.domain_age if result.domain_age is not none else 'Unknown' }}
+                          {% if result.domain_age is not none %}
+                            {{ (result.domain_age // 365) }}+
+                          {% else %}
+                            Unknown
+                          {% endif %}
                         </span>
                       </div>
                     </div>

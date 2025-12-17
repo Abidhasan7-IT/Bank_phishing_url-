@@ -18,7 +18,7 @@ VIRUSTOTAL_KEY = os.getenv("VT_API_KEY", "d30c1313984f1520c132273058c4867420a601
 
 # Risk scoring thresholds
 RISK_THRESHOLD = {
-    "high": 50,  # score >= 50 -> phishing (lowered to catch more suspicious URLs)
+    "high": 60,  # score >= 60 -> phishing
     "medium": 30,  # score >= 30 -> suspicious/warning
 }
 
