@@ -77,7 +77,7 @@ Research-friendly phishing detection prototype built with Flask, MySQL, and Boot
 - +30 if domain age < 365 days.
 - +40 if external API result is `suspicious`.
 - Score capped at 100.
-- Verdict: score ≥ 70 → phishing, else safe.
+- Verdict: score ≥ 60 → phishing, else safe.
 
 ## External API Integration (swap the mock)
 Replace `external_api_check` in `app.py` with real calls:
